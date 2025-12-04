@@ -1,0 +1,1876 @@
+Here are the complete file contents for the NewsArticles React Native app based on the project description:
+
+## 📁 **Complete File Structure**
+
+```
+NewsArticles/
+├── .gitignore
+├── README.md
+├── package.json
+├── App.js
+├── babel.config.js
+├── assets/
+│   └── images/
+│       ├── avatar.png
+│       └── welcome.png
+└── src/
+    ├── components/
+    │   ├── articles.js
+    │   └── categories.js
+    ├── navigation/
+    │   └── index.js
+    ├── redux/
+    │   ├── favoritesSlice.js
+    │   └── store.js
+    └── screens/
+        ├── ArticleDetailScreen.js
+        ├── CustomNewsScreen.js
+        ├── FavoriteScreen.js
+        ├── HomeScreen.js
+        ├── MyArticlesScreen.js
+        ├── NewsFormScreen.js
+        └── WelcomeScreen.js
+```
+
+## 📄 **File Contents**
+
+### **1. `.gitignore`**
+```gitignore
+# Dependencies
+node_modules/
+.expo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production
+build/
+dist/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# React Native
+.expo-shared/
+```
+
+### **2. `package.json`**
+```json
+{
+  "name": "newsarticles",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build:web": "expo build:web",
+    "eject": "expo eject"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "1.18.2",
+    "@react-navigation/native": "^6.1.9",
+    "@react-navigation/native-stack": "^6.9.17",
+    "@reduxjs/toolkit": "^2.0.1",
+    "expo": "~49.0.15",
+    "expo-constants": "~14.4.2",
+    "expo-file-system": "~15.4.4",
+    "expo-status-bar": "~1.6.0",
+    "react": "18.2.0",
+    "react-native": "0.72.6",
+    "react-native-reanimated": "~3.3.0",
+    "react-native-responsive-screen": "^1.4.2",
+    "react-native-safe-area-context": "4.6.3",
+    "react-native-screens": "~3.22.0",
+    "react-native-vector-icons": "^10.0.0",
+    "react-redux": "^8.1.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0"
+  },
+  "private": true
+}
+```
+
+### **3. `App.js`**
+```jsx
+import React from 'react';
+import { Provider } from 'react-redux';
+import { store } from './src/redux/store';
+import AppNavigation from './src/navigation';
+
+export default function App() {
+  return (
+    <Provider store={store}>
+      <AppNavigation />
+    </Provider>
+  );
+}
+```
+
+### **4. `babel.config.js`**
+```javascript
+module.exports = function(api) {
+  api.cache(true);
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: ['react-native-reanimated/plugin']
+  };
+};
+```
+
+## 📁 **src/components/**
+
+### **5. `src/components/articles.js`**
+```jsx
+import React from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+} from 'react-native';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useNavigation } from '@react-navigation/native';
+
+const Articles = ({ articles }) => {
+  const navigation = useNavigation();
+
+  const renderItem = ({ item, index }) => (
+    <ArticleCard item={item} index={index} navigation={navigation} />
+  );
+
+  return (
+    <View style={styles.container} testID="articlesDisplay">
+      <Text style={styles.title}>Latest News</Text>
+      <FlatList
+        data={articles}
+        keyExtractor={(item) => item.idArticle}
+        renderItem={renderItem}
+        numColumns={2}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
+};
+
+const ArticleCard = ({ item, index, navigation }) => {
+  return (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('ArticleDetail', { ...item })}
+      testID="articleDisplay"
+    >
+      <Image
+        source={{ uri: item.thumbnail }}
+        style={[
+          styles.articleImage,
+          { height: index % 3 === 0 ? hp(25) : hp(35) },
+        ]}
+      />
+      <Text style={styles.articleText}>
+        {item.title.length > 20
+          ? item.title.slice(0, 20) + '...'
+          : item.title}
+      </Text>
+      <Text style={styles.articleDescription}>
+        {item.description.length > 40
+          ? item.description.slice(0, 40) + '...'
+          : item.description}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    fontSize: hp(3),
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#333',
+  },
+  card: {
+    flex: 1,
+    margin: 8,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  articleImage: {
+    width: '100%',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  articleText: {
+    fontSize: hp(2),
+    fontWeight: '600',
+    marginBottom: 4,
+    color: '#222',
+  },
+  articleDescription: {
+    fontSize: hp(1.8),
+    color: '#666',
+  },
+});
+
+export default Articles;
+```
+
+### **6. `src/components/categories.js`**
+```jsx
+import React from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+} from 'react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+
+const Categories = ({ categories, activeCategory, handleChangeCategory }) => {
+  return (
+    <View style={styles.container} testID="categoryList">
+      <Text style={styles.title}>Categories</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category.idCategory}
+            style={[
+              styles.categoryCard,
+              activeCategory === category.strCategory && styles.activeCard,
+            ]}
+            onPress={() => handleChangeCategory(category.strCategory)}
+          >
+            <Image
+              source={{ uri: category.strCategoryThumb }}
+              style={styles.categoryImage}
+            />
+            <Text
+              style={[
+                styles.categoryText,
+                activeCategory === category.strCategory && styles.activeText,
+              ]}
+            >
+              {category.strCategory}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    marginVertical: hp(2),
+  },
+  title: {
+    fontSize: hp(2.5),
+    fontWeight: 'bold',
+    marginBottom: hp(1.5),
+    paddingHorizontal: wp(4),
+    color: '#333',
+  },
+  scrollContent: {
+    paddingHorizontal: wp(4),
+    paddingBottom: hp(1),
+  },
+  categoryCard: {
+    alignItems: 'center',
+    marginRight: wp(4),
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: wp(3),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  activeCard: {
+    backgroundColor: '#6439FF',
+  },
+  categoryImage: {
+    width: wp(15),
+    height: wp(15),
+    borderRadius: wp(7.5),
+    marginBottom: hp(1),
+  },
+  categoryText: {
+    fontSize: hp(1.8),
+    fontWeight: '500',
+    color: '#555',
+  },
+  activeText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+});
+
+export default Categories;
+```
+
+## 📁 **src/navigation/**
+
+### **7. `src/navigation/index.js`**
+```jsx
+import * as React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import HomeScreen from '../screens/HomeScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
+import MyArticlesScreen from '../screens/MyArticlesScreen';
+import CustomNewsScreen from '../screens/CustomNewsScreen';
+import NewsFormScreen from '../screens/NewsFormScreen';
+import FavoriteScreen from '../screens/FavoriteScreen';
+import ArticleDetailScreen from '../screens/ArticleDetailScreen';
+
+const Stack = createNativeStackNavigator();
+
+function AppNavigation() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Welcome"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} />
+        <Stack.Screen name="MyArticles" component={MyArticlesScreen} />
+        <Stack.Screen name="CustomNewsScreen" component={CustomNewsScreen} />
+        <Stack.Screen name="NewsFormScreen" component={NewsFormScreen} />
+        <Stack.Screen name="FavoriteScreen" component={FavoriteScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+export default AppNavigation;
+```
+
+## 📁 **src/redux/**
+
+### **8. `src/redux/favoritesSlice.js`**
+```javascript
+import { createSlice } from '@reduxjs/toolkit';
+
+const initialState = {
+  favoriteArticles: [],
+};
+
+const favoritesSlice = createSlice({
+  name: 'favorites',
+  initialState,
+  reducers: {
+    toggleFavorite: (state, action) => {
+      const article = action.payload;
+      const existingIndex = state.favoriteArticles.findIndex(
+        (item) => item.id === article.idArticle
+      );
+      if (existingIndex >= 0) {
+        state.favoriteArticles.splice(existingIndex, 1);
+      } else {
+        state.favoriteArticles.push(article);
+      }
+    },
+    clearFavorites: (state) => {
+      state.favoriteArticles = [];
+    },
+  },
+});
+
+export const { toggleFavorite, clearFavorites } = favoritesSlice.actions;
+export default favoritesSlice.reducer;
+```
+
+### **9. `src/redux/store.js`**
+```javascript
+import { configureStore } from '@reduxjs/toolkit';
+import favoritesReducer from './favoritesSlice';
+
+export const store = configureStore({
+  reducer: {
+    favorites: favoritesReducer,
+  },
+});
+```
+
+## 📁 **src/screens/**
+
+### **10. `src/screens/WelcomeScreen.js`**
+```jsx
+import { View, Text, Image, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+import Animated, { useSharedValue, withSpring } from 'react-native-reanimated';
+import { useNavigation } from '@react-navigation/native';
+
+export default function WelcomeScreen() {
+  const ring1padding = useSharedValue(0);
+  const ring2padding = useSharedValue(0);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    ring1padding.value = 0;
+    ring2padding.value = 0;
+    setTimeout(
+      () => (ring1padding.value = withSpring(ring1padding.value + hp(10))),
+      100
+    );
+    setTimeout(
+      () => (ring2padding.value = withSpring(ring2padding.value + hp(10.5))),
+      300
+    );
+    setTimeout(() => navigation.navigate('Home'), 2500);
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <StatusBar style="light" />
+      <Animated.View style={[styles.ring, { padding: ring2padding }]}>
+        <Animated.View style={[styles.ring, { padding: ring1padding }]}>
+          <Image
+            source={{
+              uri: 'https://cdn.pixabay.com/photo/2013/07/12/17/43/newspaper-152320_1280.png',
+            }}
+            style={styles.logo}
+          />
+        </Animated.View>
+      </Animated.View>
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>WHATS GOING ON!</Text>
+        <Text style={styles.subtitle}>your latest news app</Text>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#6439FF',
+  },
+  ring: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 9999,
+  },
+  logo: {
+    width: 250,
+    height: 250,
+    resizeMode: 'contain',
+  },
+  textContainer: {
+    alignItems: 'center',
+    marginTop: hp(2),
+  },
+  title: {
+    fontSize: hp(5),
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    letterSpacing: 3,
+  },
+  subtitle: {
+    fontSize: hp(2),
+    fontWeight: '500',
+    color: '#FFFFFF',
+    letterSpacing: 3,
+  },
+});
+```
+
+### **11. `src/screens/HomeScreen.js`**
+```jsx
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+import Categories from '../components/categories';
+import Articles from '../components/articles';
+import { useNavigation } from '@react-navigation/native';
+
+export default function HomeScreen() {
+  const [activeCategory, setActiveCategory] = useState('Technology');
+  const [categories] = useState([
+    {
+      idCategory: '1',
+      strCategory: 'Technology',
+      strCategoryThumb:
+        'https://cdn.pixabay.com/photo/2015/12/04/14/05/code-1076536_1280.jpg',
+    },
+    {
+      idCategory: '2',
+      strCategory: 'Sports',
+      strCategoryThumb:
+        'https://cdn.pixabay.com/photo/2016/11/29/09/10/american-football-1868578_1280.jpg',
+    },
+    {
+      idCategory: '3',
+      strCategory: 'Business',
+      strCategoryThumb:
+        'https://cdn.pixabay.com/photo/2015/05/28/14/53/ux-787980_1280.jpg',
+    },
+    {
+      idCategory: '4',
+      strCategory: 'Entertainment',
+      strCategoryThumb:
+        'https://cdn.pixabay.com/photo/2019/05/31/16/55/cinema-4242925_1280.jpg',
+    },
+    {
+      idCategory: '5',
+      strCategory: 'Science',
+      strCategoryThumb:
+        'https://cdn.pixabay.com/photo/2018/02/08/11/45/science-3139656_1280.jpg',
+    },
+    {
+      idCategory: '6',
+      strCategory: 'Health',
+      strCategoryThumb:
+        'https://cdn.pixabay.com/photo/2016/03/26/16/44/tomatoes-1280859_1280.jpg',
+    },
+  ]);
+
+  const [allArticles] = useState([
+    {
+      idArticle: '1',
+      title: 'The Future of Blockchain',
+      description: 'How blockchain technology is transforming industries...',
+      thumbnail:
+        'https://cdn.pixabay.com/photo/2017/08/30/07/56/money-2696219_1280.jpg',
+      category: 'Technology',
+    },
+    {
+      idArticle: '2',
+      title: 'AI Revolution in Healthcare',
+      description: 'Artificial intelligence is revolutionizing medical diagnosis...',
+      thumbnail:
+        'https://cdn.pixabay.com/photo/2018/07/14/11/33/fantasy-3537095_1280.jpg',
+      category: 'Technology',
+    },
+    {
+      idArticle: '3',
+      title: 'Renewable Energy Breakthrough',
+      description: 'New solar technology achieves record efficiency...',
+      thumbnail:
+        'https://cdn.pixabay.com/photo/2016/11/21/17/44/arches-1846758_1280.jpg',
+      category: 'Science',
+    },
+    {
+      idArticle: '4',
+      title: 'World Cup Finals Analysis',
+      description: 'In-depth analysis of the recent World Cup championship...',
+      thumbnail:
+        'https://cdn.pixabay.com/photo/2016/11/29/11/24/football-1869520_1280.jpg',
+      category: 'Sports',
+    },
+    {
+      idArticle: '5',
+      title: 'Stock Market Trends',
+      description: 'Analysis of current stock market trends and predictions...',
+      thumbnail:
+        'https://cdn.pixabay.com/photo/2015/05/28/14/53/ux-787980_1280.jpg',
+      category: 'Business',
+    },
+    {
+      idArticle: '6',
+      title: 'Mental Health Awareness',
+      description: 'The importance of mental health in modern society...',
+      thumbnail:
+        'https://cdn.pixabay.com/photo/2016/03/26/16/44/tomatoes-1280859_1280.jpg',
+      category: 'Health',
+    },
+    {
+      idArticle: '7',
+      title: 'Quantum Computing Advances',
+      description: 'Recent breakthroughs in quantum computing technology...',
+      thumbnail:
+        'https://cdn.pixabay.com/photo/2018/05/08/08/44/artificial-intelligence-3382507_1280.jpg',
+      category: 'Technology',
+    },
+    {
+      idArticle: '8',
+      title: 'Olympics Preparation',
+      description: 'Countries preparing for the upcoming Olympic Games...',
+      thumbnail:
+        'https://cdn.pixabay.com/photo/2016/11/29/09/10/american-football-1868578_1280.jpg',
+      category: 'Sports',
+    },
+  ]);
+
+  const navigation = useNavigation();
+
+  const handleChangeCategory = (category) => {
+    setActiveCategory(category);
+  };
+
+  const filteredArticles = allArticles.filter(
+    (article) => article.category === activeCategory
+  );
+
+  return (
+    <ScrollView style={styles.container} testID="scrollContainer">
+      <StatusBar style="dark" />
+      
+      {/* Header */}
+      <View style={styles.header} testID="headerContainer">
+        <Image
+          source={{ uri: 'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_1280.png' }}
+          style={styles.avatar}
+        />
+        <View>
+          <Text style={styles.greeting}>Hello, User!</Text>
+          <Text style={styles.subGreeting}>Welcome back</Text>
+        </View>
+      </View>
+
+      {/* Title Section */}
+      <View style={styles.titleContainer} testID="titleContainer">
+        <Text style={styles.mainTitle}>Stay updated with</Text>
+        <Text style={styles.mainTitle}>the latest news</Text>
+        <Text style={styles.subTitle}>from around the world</Text>
+      </View>
+
+      {/* Categories */}
+      <View style={styles.section} testID="categoryList">
+        <Categories
+          categories={categories}
+          activeCategory={activeCategory}
+          handleChangeCategory={handleChangeCategory}
+        />
+      </View>
+
+      {/* Articles */}
+      <View style={styles.section} testID="articleList">
+        <Articles articles={filteredArticles} categories={categories} />
+      </View>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('FavoriteScreen')}
+        >
+          <Text style={styles.navButtonText}>My Favorites</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('MyArticles')}
+        >
+          <Text style={styles.navButtonText}>My News</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: wp(5),
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  avatar: {
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
+    marginRight: wp(4),
+  },
+  greeting: {
+    fontSize: hp(2.5),
+    fontWeight: '600',
+    color: '#333',
+  },
+  subGreeting: {
+    fontSize: hp(1.8),
+    color: '#666',
+  },
+  titleContainer: {
+    padding: wp(5),
+    paddingTop: hp(2),
+  },
+  mainTitle: {
+    fontSize: hp(3.5),
+    fontWeight: 'bold',
+    color: '#222',
+  },
+  subTitle: {
+    fontSize: hp(2),
+    color: '#666',
+    marginTop: hp(0.5),
+  },
+  section: {
+    marginBottom: hp(2),
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: wp(5),
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
+  },
+  navButton: {
+    backgroundColor: '#6439FF',
+    paddingHorizontal: wp(6),
+    paddingVertical: hp(1.5),
+    borderRadius: 25,
+  },
+  navButtonText: {
+    color: '#fff',
+    fontSize: hp(1.8),
+    fontWeight: '600',
+  },
+});
+```
+
+### **12. `src/screens/ArticleDetailScreen.js`**
+```jsx
+import React from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleFavorite } from '../redux/favoritesSlice';
+
+export default function ArticleDetailScreen(props) {
+  const article = props.route.params;
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+  
+  const favoriteArticles = useSelector(
+    (state) => state.favorites.favoriteArticles
+  );
+  
+  const isFavourite = favoriteArticles.some(
+    (fav) => fav.id === article.idArticle
+  );
+
+  const handleToggleFavorite = () => {
+    dispatch(toggleFavorite(article));
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      {/* Image Container */}
+      <View style={styles.imageContainer} testID="imageContainer">
+        <Image
+          source={{ uri: article.thumbnail }}
+          style={styles.articleImage}
+        />
+      </View>
+
+      {/* Top Buttons */}
+      <View style={styles.topButtonsContainer} testID="topButtonsContainer">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleToggleFavorite}
+          style={[
+            styles.favoriteButton,
+            { backgroundColor: 'white' },
+          ]}
+        >
+          <Text style={styles.heartText}>{isFavourite ? '♥' : '♡'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Content Container */}
+      <View style={styles.contentContainer} testID="contentContainer">
+        <Text style={styles.articleTitle} testID="articleTitle">
+          {article.title}
+        </Text>
+        
+        <View style={styles.categoryContainer} testID="articleCategory">
+          <Text style={styles.categoryText}>{article.category}</Text>
+        </View>
+
+        <View style={styles.sectionContainer} testID="sectionContainer">
+          <Text style={styles.sectionTitle}>Description</Text>
+          <Text style={styles.descriptionText}>{article.description}</Text>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  imageContainer: {
+    width: '100%',
+    height: hp(40),
+  },
+  articleImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  topButtonsContainer: {
+    position: 'absolute',
+    top: hp(4),
+    left: wp(4),
+    right: wp(4),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  favoriteButton: {
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  buttonText: {
+    fontSize: hp(1.8),
+    fontWeight: '600',
+    color: '#333',
+  },
+  heartText: {
+    fontSize: hp(2.5),
+    color: '#6439FF',
+  },
+  contentContainer: {
+    padding: wp(5),
+    paddingTop: hp(2),
+  },
+  articleTitle: {
+    fontSize: hp(3.5),
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: hp(1.5),
+  },
+  categoryContainer: {
+    backgroundColor: '#6439FF',
+    alignSelf: 'flex-start',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(0.5),
+    borderRadius: 15,
+    marginBottom: hp(2),
+  },
+  categoryText: {
+    color: '#fff',
+    fontSize: hp(1.8),
+    fontWeight: '600',
+  },
+  sectionContainer: {
+    marginTop: hp(1),
+  },
+  sectionTitle: {
+    fontSize: hp(2.5),
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: hp(1),
+  },
+  descriptionText: {
+    fontSize: hp(2),
+    lineHeight: hp(3),
+    color: '#555',
+    textAlign: 'justify',
+  },
+});
+```
+
+### **13. `src/screens/FavoriteScreen.js`**
+```jsx
+import React from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  Image,
+  StyleSheet,
+} from 'react-native';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+
+export default function FavoriteScreen() {
+  const favoriteArticles = useSelector(
+    (state) => state.favorites.favoriteArticles
+  );
+  const navigation = useNavigation();
+
+  const favoriteArticlesList = favoriteArticles || [];
+
+  if (favoriteArticlesList.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No favorite articles yet!</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.goBackButton}
+        >
+          <Text style={styles.goBackButtonText}>Go back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>My Favorite Articles</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>Go back</Text>
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={favoriteArticlesList}
+        contentContainerStyle={styles.listContentContainer}
+        keyExtractor={(item) => item.idArticle}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.cardContainer}
+            onPress={() => navigation.navigate('ArticleDetail', item)}
+          >
+            <Image
+              source={{ uri: item.thumbnail }}
+              style={styles.articleImage}
+            />
+            <Text style={styles.articleTitle}>
+              {item.title.length > 20
+                ? `${item.title.slice(0, 20)}...`
+                : item.title}
+            </Text>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  header: {
+    backgroundColor: '#6439FF',
+    padding: wp(5),
+    paddingTop: hp(6),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: hp(2.8),
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  backButton: {
+    backgroundColor: '#fff',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: 20,
+  },
+  backButtonText: {
+    color: '#6439FF',
+    fontSize: hp(1.8),
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: wp(5),
+  },
+  emptyText: {
+    fontSize: hp(2.5),
+    color: '#666',
+    marginBottom: hp(3),
+  },
+  goBackButton: {
+    backgroundColor: '#2563EB',
+    padding: hp(1.5),
+    borderRadius: 8,
+    width: wp(30),
+    alignItems: 'center',
+  },
+  goBackButtonText: {
+    color: '#fff',
+    fontSize: hp(1.8),
+    fontWeight: '600',
+  },
+  listContentContainer: {
+    padding: wp(4),
+  },
+  cardContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: hp(2),
+    padding: wp(4),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  articleImage: {
+    width: wp(20),
+    height: wp(20),
+    borderRadius: 8,
+    marginRight: wp(4),
+  },
+  articleTitle: {
+    flex: 1,
+    fontSize: hp(2),
+    fontWeight: '600',
+    color: '#333',
+  },
+});
+```
+
+### **14. `src/screens/MyArticlesScreen.js`**
+```jsx
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+
+export default function MyArticlesScreen() {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    fetchArticles();
+  }, []);
+
+  const fetchArticles = async () => {
+    try {
+      const storedArticles = await AsyncStorage.getItem('customArticles');
+      if (storedArticles) {
+        setArticles(JSON.parse(storedArticles));
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      setLoading(false);
+    }
+  };
+
+  const handleAddArticle = () => {
+    navigation.navigate('NewsFormScreen');
+  };
+
+  const handleArticleClick = (article) => {
+    navigation.navigate('CustomNewsScreen', { article });
+  };
+
+  const editArticle = (article, index) => {
+    navigation.navigate('NewsFormScreen', {
+      articleToEdit: article,
+      articleIndex: index,
+      onArticleEdited: fetchArticles,
+    });
+  };
+
+  const deleteArticle = async (index) => {
+    Alert.alert(
+      'Delete Article',
+      'Are you sure you want to delete this article?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updatedArticles = [...articles];
+              updatedArticles.splice(index, 1);
+              await AsyncStorage.setItem(
+                'customArticles',
+                JSON.stringify(updatedArticles)
+              );
+              setArticles(updatedArticles);
+            } catch (error) {
+              console.error('Error deleting the article:', error);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#6439FF" />
+        <Text style={styles.loadingText}>Loading articles...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>My Articles</Text>
+        <TouchableOpacity onPress={handleAddArticle} style={styles.addButton}>
+          <Text style={styles.addButtonText}>+ New</Text>
+        </TouchableOpacity>
+      </View>
+
+      {articles.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No articles yet!</Text>
+          <TouchableOpacity onPress={handleAddArticle} style={styles.addFirstButton}>
+            <Text style={styles.addFirstButtonText}>Add Your First Article</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.articlesContainer}>
+          {articles.map((article, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.articleCard}
+              onPress={() => handleArticleClick(article)}
+              testID="handleArticleBtn"
+            >
+              {article.image && (
+                <Image
+                  source={{ uri: article.image }}
+                  style={styles.articleImage}
+                />
+              )}
+              <View style={styles.articleContent}>
+                <Text style={styles.articleTitle}>
+                  {article.title || 'Untitled Article'}
+                </Text>
+                <Text style={styles.articleDescription} testID="articleDescp">
+                  {article.description?.substring(0, 50) + '...'}
+                </Text>
+                <View style={styles.buttonsContainer} testID="editDeleteButtons">
+                  <TouchableOpacity
+                    onPress={() => editArticle(article, index)}
+                    style={styles.editButton}
+                  >
+                    <Text style={styles.editButtonText}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => deleteArticle(index)}
+                    style={styles.deleteButton}
+                  >
+                    <Text style={styles.deleteButtonText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    marginTop: hp(2),
+    fontSize: hp(2),
+    color: '#666',
+  },
+  header: {
+    backgroundColor: '#6439FF',
+    padding: wp(5),
+    paddingTop: hp(6),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backButton: {
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: hp(1.8),
+  },
+  headerTitle: {
+    fontSize: hp(2.8),
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  addButton: {
+    backgroundColor: '#fff',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: 20,
+  },
+  addButtonText: {
+    color: '#6439FF',
+    fontSize: hp(1.8),
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: wp(5),
+    minHeight: hp(60),
+  },
+  emptyText: {
+    fontSize: hp(2.5),
+    color: '#666',
+    marginBottom: hp(3),
+  },
+  addFirstButton: {
+    backgroundColor: '#6439FF',
+    paddingHorizontal: wp(6),
+    paddingVertical: hp(1.5),
+    borderRadius: 25,
+  },
+  addFirstButtonText: {
+    color: '#fff',
+    fontSize: hp(1.8),
+    fontWeight: '600',
+  },
+  articlesContainer: {
+    padding: wp(4),
+  },
+  articleCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: hp(2),
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  articleImage: {
+    width: '100%',
+    height: hp(25),
+    resizeMode: 'cover',
+  },
+  articleContent: {
+    padding: wp(4),
+  },
+  articleTitle: {
+    fontSize: hp(2.2),
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: hp(1),
+  },
+  articleDescription: {
+    fontSize: hp(1.8),
+    color: '#666',
+    marginBottom: hp(2),
+    lineHeight: hp(2.5),
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: wp(3),
+  },
+  editButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: 8,
+  },
+  editButtonText: {
+    color: '#fff',
+    fontSize: hp(1.6),
+    fontWeight: '600',
+  },
+  deleteButton: {
+    backgroundColor: '#F44336',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: 8,
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: hp(1.6),
+    fontWeight: '600',
+  },
+});
+```
+
+### **15. `src/screens/NewsFormScreen.js`**
+```jsx
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+
+export default function NewsFormScreen() {
+  const navigation = useNavigation();
+  const route = useRoute();
+  
+  const { articleToEdit, articleIndex, onArticleEdited } = route.params || {};
+
+  const [title, setTitle] = useState(articleToEdit?.title || '');
+  const [image, setImage] = useState(articleToEdit?.image || '');
+  const [description, setDescription] = useState(articleToEdit?.description || '');
+
+  const saveArticle = async () => {
+    if (!title.trim() || !description.trim()) {
+      Alert.alert('Error', 'Please fill in all required fields');
+      return;
+    }
+
+    const newArticle = { title, image, description };
+    
+    try {
+      const existingArticles = await AsyncStorage.getItem('customArticles');
+      const articles = existingArticles ? JSON.parse(existingArticles) : [];
+      
+      if (articleToEdit !== undefined && articleIndex !== undefined) {
+        // Edit existing article
+        articles[articleIndex] = newArticle;
+        await AsyncStorage.setItem('customArticles', JSON.stringify(articles));
+        if (onArticleEdited) onArticleEdited(); // Notify parent component
+        Alert.alert('Success', 'Article updated successfully!');
+      } else {
+        // Add new article
+        articles.push(newArticle);
+        await AsyncStorage.setItem('customArticles', JSON.stringify(articles));
+        Alert.alert('Success', 'Article saved successfully!');
+      }
+      
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error saving the article:', error);
+      Alert.alert('Error', 'Failed to save article. Please try again.');
+    }
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>
+          {articleToEdit ? 'Edit Article' : 'New Article'}
+        </Text>
+        <TouchableOpacity onPress={saveArticle} style={styles.saveButton}>
+          <Text style={styles.saveButtonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.formContainer}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Title *</Text>
+          <TextInput
+            style={styles.input}
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Enter article title"
+            placeholderTextColor="#999"
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Image URL (Optional)</Text>
+          <TextInput
+            style={styles.input}
+            value={image}
+            onChangeText={setImage}
+            placeholder="https://example.com/image.jpg"
+            placeholderTextColor="#999"
+          />
+          {image ? (
+            <Image
+              source={{ uri: image }}
+              style={styles.imagePreview}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Text style={styles.placeholderText}>Upload Image URL</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Description *</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Enter article description"
+            placeholderTextColor="#999"
+            multiline
+            numberOfLines={6}
+            textAlignVertical="top"
+          />
+        </View>
+
+        <TouchableOpacity style={styles.submitButton} onPress={saveArticle}>
+          <Text style={styles.submitButtonText}>
+            {articleToEdit ? 'Update Article' : 'Save Article'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  header: {
+    backgroundColor: '#6439FF',
+    padding: wp(5),
+    paddingTop: hp(6),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backButton: {
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: hp(1.8),
+  },
+  headerTitle: {
+    fontSize: hp(2.5),
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  saveButton: {
+    backgroundColor: '#fff',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: 20,
+  },
+  saveButtonText: {
+    color: '#6439FF',
+    fontSize: hp(1.8),
+    fontWeight: '600',
+  },
+  formContainer: {
+    padding: wp(5),
+  },
+  inputGroup: {
+    marginBottom: hp(3),
+  },
+  label: {
+    fontSize: hp(1.8),
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: hp(1),
+  },
+  input: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: wp(4),
+    fontSize: hp(1.8),
+    color: '#333',
+  },
+  textArea: {
+    height: hp(20),
+    textAlignVertical: 'top',
+  },
+  imagePreview: {
+    width: '100%',
+    height: hp(25),
+    borderRadius: 8,
+    marginTop: hp(2),
+  },
+  imagePlaceholder: {
+    width: '100%',
+    height: hp(25),
+    backgroundColor: '#e9ecef',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: hp(2),
+  },
+  placeholderText: {
+    fontSize: hp(1.8),
+    color: '#666',
+  },
+  submitButton: {
+    backgroundColor: '#6439FF',
+    padding: hp(2),
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: hp(2),
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: hp(2),
+    fontWeight: '600',
+  },
+});
+```
+
+### **16. `src/screens/CustomNewsScreen.js`**
+```jsx
+import React from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleFavorite } from '../redux/favoritesSlice';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
+
+export default function CustomNewsScreen() {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const article = route.params?.article;
+  
+  const dispatch = useDispatch();
+  const favoriteArticles = useSelector(
+    (state) => state.favorites.favoriteArticles
+  );
+
+  if (!article) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>No Article Details Available</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const isFavourite = favoriteArticles.some(
+    (fav) => fav.id === article.idArticle
+  );
+
+  const handleToggleFavorite = () => {
+    dispatch(toggleFavorite(article));
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      {/* Image Container */}
+      <View style={styles.imageContainer} testID="imageContainer">
+        {article.image ? (
+          <Image source={{ uri: article.image }} style={styles.articleImage} />
+        ) : (
+          <View style={styles.noImageContainer}>
+            <Text style={styles.noImageText}>No Image Available</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Top Buttons */}
+      <View style={styles.topButtonsContainer} testID="topButtonsContainer">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleToggleFavorite}
+          style={styles.favoriteButton}
+        >
+          <Text style={styles.heartText}>{isFavourite ? '♥' : '♡'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Content Container */}
+      <View style={styles.contentContainer} testID="contentContainer">
+        <Text style={styles.articleTitle}>{article.title}</Text>
+        
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Content</Text>
+          <Text style={styles.contentText}>{article.description}</Text>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: wp(5),
+  },
+  errorText: {
+    fontSize: hp(2.5),
+    color: '#666',
+    marginBottom: hp(3),
+    textAlign: 'center',
+  },
+  imageContainer: {
+    width: '100%',
+    height: hp(40),
+  },
+  articleImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  noImageContainer: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#e9ecef',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noImageText: {
+    fontSize: hp(2),
+    color: '#666',
+  },
+  topButtonsContainer: {
+    position: 'absolute',
+    top: hp(4),
+    left: wp(4),
+    right: wp(4),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  favoriteButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  buttonText: {
+    fontSize: hp(1.8),
+    fontWeight: '600',
+    color: '#333',
+  },
+  heartText: {
+    fontSize: hp(2.5),
+    color: '#6439FF',
+  },
+  contentContainer: {
+    padding: wp(5),
+    paddingTop: hp(2),
+  },
+  articleTitle: {
+    fontSize: hp(3.5),
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: hp(2),
+  },
+  sectionContainer: {
+    marginTop: hp(1),
+  },
+  sectionTitle: {
+    fontSize: hp(2.5),
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: hp(1),
+  },
+  contentText: {
+    fontSize: hp(2),
+    lineHeight: hp(3),
+    color: '#555',
+    textAlign: 'justify',
+  },
+});
+```
+
+## 🚀 **Setup Instructions**
+
+1. **Initialize project:**
+```bash
+npx create-expo-app NewsArticles --template blank
+cd NewsArticles
+```
+
+2. **Install dependencies:**
+```bash
+npm install @react-navigation/native @react-navigation/native-stack
+npm install react-native-screens react-native-safe-area-context
+npm install @react-native-async-storage/async-storage
+npm install @reduxjs/toolkit react-redux
+npm install react-native-responsive-screen react-native-reanimated
+npm install react-native-vector-icons
+npm install expo-constants expo-file-system
+```
+
+3. **Create all the files** with the contents above
+
+4. **Run the app:**
+```bash
+npm start
+```
+
